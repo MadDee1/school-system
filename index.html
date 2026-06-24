@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบสารสนเทศโรงเรียน</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap');
+        body { font-family: 'Prompt', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+
+    <div id="login-page" class="flex-1 flex items-center justify-center p-4">
+        <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-md w-full max-w-md border border-gray-100">
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-50 text-indigo-900 rounded-full mb-3">
+                    <i class="fa-solid fa-school text-3xl"></i>
+                </div>
+                <h1 class="text-xl font-bold text-indigo-950">ระบบสารสนเทศโรงเรียน</h1>
+                <p class="text-xs text-gray-500 mt-1">กรุณาเลือกสถานะเพื่อเข้าสู่ระบบ</p>
+            </div>
+
+            <div id="role-tab-container" class="flex bg-gray-100 p-1 rounded-xl mb-6">
+                <button onclick="switchRole('teacher')" id="tab-teacher" class="flex-1 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-indigo-950 text-white transition-all duration-200">
+                    <i class="fa-solid fa-chalkboard-user mr-1"></i> ครู/แอดมิน
+                </button>
+                <button onclick="switchRole('student')" id="tab-student" class="flex-1 py-2 text-xs sm:text-sm font-semibold rounded-lg text-gray-500 hover:text-gray-700 transition-all duration-200">
+                    <i class="fa-solid fa-user-graduate mr-1"></i> นักเรียน
+                </button>
+                <button onclick="switchRole('parent')" id="tab-parent" class="flex-1 py-2 text-xs sm:text-sm font-semibold rounded-lg text-gray-500 hover:text-gray-700 transition-all duration-200">
+                    <i class="fa-solid fa-user-group mr-1"></i> ผู้ปกครอง
+                </button>
+            </div>
+
+            <div id="login-form-box">
+                <form id="login-form">
+                    <div class="mb-4">
+                        <label id="username-label" class="block text-sm font-semibold text-gray-700 mb-2">ชื่อผู้ใช้งาน (Email)</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <i id="username-icon" class="fa-solid fa-envelope"></i>
+                            </span>
+                            <input type="text" id="username" required class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-900 focus:bg-white transition" placeholder="ระบุอีเมลคุณครู">
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label id="password-label" class="block text-sm font-semibold text-gray-700 mb-2">รหัสผ่าน</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <i class="fa-solid fa-lock"></i>
+                            </span>
+                            <input type="password" id="password" required class="w-full pl-10 pr-12 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-900 focus:bg-white transition" placeholder="••••••">
+                            <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600">
+                                <i id="password-toggle-icon" class="fa-solid fa-eye-slash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="forgot-password-zone" class="text-right mb-6">
+                        <button type="button" onclick="toggleForgotBox(true)" class="text-xs text-indigo-900 font-semibold hover:underline">ลืมรหัสผ่าน?</button>
+                    </div>
+
+                    <button type="submit" class="w-full bg-indigo-950 text-white py-3 rounded-xl font-semibold hover:bg-indigo-900 transition shadow-lg shadow-indigo-950/20">
+                        เข้าสู่ระบบ <i class="fa-solid fa-arrow-right-to-bracket ml-2"></i>
+                    </button>
+                </form>
+
+                <div id="register-trigger-zone" class="text-center mt-4">
+                    <button type="button" onclick="toggleRegisterBox(true)" class="text-xs text-indigo-900 font-semibold hover:underline">ยังไม่มีบัญชีครู? สมัครลงทะเบียนที่นี่</button>
+                </div>
+            </div>
+
+            <div id="teacher-register-box" class="hidden">
+                <p class="text-xs text-gray-500 text-center mb-4"><i class="fa-solid fa-user-plus mr-1"></i> ลงทะเบียนบัญชีผู้ใช้งานสำหรับคุณครูใหม่</p>
+                <form id="teacher-register-form">
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">ชื่อ-นามสกุลจริง</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <i class="fa-solid fa-user-tie"></i>
+                            </span>
+                            <input type="text" id="reg-name" required class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-900 focus:bg-white transition" placeholder="ระบุชื่อ-นามสกุล">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">ชื่อที่ให้นักเรียนเรียก</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <i class="fa-solid fa-comment-medical"></i>
+                            </span>
+                            <input type="text" id="reg-display-name" required class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-900 focus:bg-white transition" placeholder="ชื่อเล่นครู">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">อีเมล (ใช้เป็น Username ในการล็อกอิน)</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <i class="fa-solid fa-envelope"></i>
+                            </span>
+                            <input type="email" id="reg-email" required class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-900 focus:bg-white transition" placeholder="name@school.com">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">รหัสผ่าน</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <i class="fa-solid fa-lock"></i>
+                            </span>
+                            <input type="password" id="reg-password" required class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-900 focus:bg-white transition" placeholder="อย่างน้อย 6 ตัวอักษร">
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">ยืนยันรหัสผ่านอีกครั้ง</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <i class="fa-solid fa-circle-check"></i>
+                            </span>
+                            <input type="password" id="reg-confirm-password" required class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-900 focus:bg-white transition" placeholder="กรอกรหัสผ่านให้ตรงกัน">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-semibold hover:bg-emerald-700 transition shadow-lg shadow-emerald-600/20 mb-4">
+                        บันทึกการลงทะเบียนครู <i class="fa-solid fa-floppy-disk ml-2"></i>
+                    </button>
+                    
+                    <div class="text-center">
+                        <button type="button" onclick="toggleRegisterBox(false)" class="text-xs text-gray-600 font-semibold hover:underline">มีบัญชีอยู่แล้ว? กลับไปหน้าเข้าสู่ระบบ</button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="forgot-password-box" class="hidden">
+                <p class="text-xs text-gray-500 text-center mb-4"><i class="fa-solid fa-paper-plane mr-1"></i> ระบบส่งลิงก์รีเซ็ตรหัสผ่านเข้าอีเมลจริง</p>
+                <form id="forgot-password-form">
+                    <div class="mb-6">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">ระบุอีเมลของคุณครูที่เคยลงทะเบียนไว้</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <i class="fa-solid fa-envelope"></i>
+                            </span>
+                            <input type="email" id="forgot-email" required class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-900 focus:bg-white transition" placeholder="name@school.com">
+                        </div>
+                        <p class="text-[11px] text-gray-400 mt-2">*ระบบของ Google จะทำการส่งลิงก์สำหรับตั้งรหัสผ่านใหม่ไปยังกล่องข้อความของอีเมลนี้โดยตรง</p>
+                    </div>
+
+                    <button type="submit" class="w-full bg-amber-600 text-white py-3 rounded-xl font-semibold hover:bg-amber-700 transition shadow-lg shadow-amber-600/20 mb-4">
+                        ส่งลิงก์รีเซ็ตรหัสผ่านเข้าอีเมล <i class="fa-solid fa-share-from-square ml-2"></i>
+                    </button>
+                    
+                    <div class="text-center">
+                        <button type="button" onclick="toggleForgotBox(false)" class="text-xs text-gray-600 font-semibold hover:underline">กลับไปหน้าเข้าสู่ระบบ</button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="main-dashboard" class="hidden flex-1 flex flex-col">
+        <nav class="bg-indigo-950 text-white shadow-md px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-school text-xl"></i>
+                <span class="font-bold text-lg tracking-wide">SMS Portal</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-sm text-gray-200" id="user-display-nav"><i class="fa-solid fa-circle-user mr-2"></i>ผู้ใช้งาน</span>
+                <button id="logout-btn" class="text-sm bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg transition">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> ออกระบบ
+                </button>
+            </div>
+        </nav>
+
+        <div class="p-6 max-w-6xl w-full mx-auto space-y-6">
+            <div class="bg-gradient-to-r from-indigo-950 to-slate-800 text-white p-6 rounded-2xl shadow-sm">
+                <h2 class="text-2xl font-bold" id="welcome-title">สวัสดีครับ</h2>
+                <p class="text-indigo-200 text-sm mt-1" id="welcome-subtitle">ยินดีต้อนรับสู่ระบบสารสนเทศโรงเรียน</p>
+            </div>
+
+            <div id="admin-add-student-section" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hidden">
+                <h3 class="text-sm font-semibold text-gray-700 mb-3"><i class="fa-solid fa-user-plus text-indigo-900 mr-2"></i>ระบบเพิ่มรายชื่อนักเรียนใหม่เข้าสู่ฐานข้อมูลคลาวด์</h3>
+                <form id="add-student-form" class="flex gap-2">
+                    <input type="text" id="new-student-name" required class="flex-1 px-4 py-2 bg-gray-50 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-900" placeholder="พิมพ์ ชื่อ-นามสกุล นักเรียน">
+                    <button type="submit" class="bg-indigo-950 text-white px-5 py-2 rounded-xl text-sm font-medium hover:bg-indigo-900 transition"><i class="fa-solid fa-plus mr-1"></i>เพิ่มรายชื่อ</button>
+                </form>
+            </div>
+
+            <div id="menu-section">
+                <h3 class="text-lg font-bold text-indigo-950 mb-4">เมนูการจัดการระบบ</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="menu-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="attendance-page" class="hidden flex-1 flex flex-col">
+        <nav class="bg-teal-700 text-white shadow-md px-6 py-4 flex items-center">
+            <button id="back-to-dash-btn" class="text-white hover:text-teal-200 mr-4 transition text-lg">
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <span class="font-bold text-lg tracking-wide">ระบบเช็กชื่อเข้าเรียน - ห้อง ม.1/1</span>
+        </nav>
+
+        <div class="p-6 max-w-3xl w-full mx-auto flex-1 flex flex-col">
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center mb-4">
+                <span class="text-sm font-semibold text-gray-600"><i class="fa-solid fa-calendar text-teal-600 mr-2"></i>เลือกวันที่บันทึก</span>
+                <input type="date" id="attendance-date" class="bg-teal-50 text-teal-700 font-bold px-3 py-1 rounded-lg text-sm border-none focus:outline-none focus:ring-2 focus:ring-teal-600">
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex-1 mb-4">
+                <div class="overflow-y-auto max-h-[450px]" id="student-list-container"></div>
+            </div>
+
+            <button id="save-attendance-btn" class="w-full bg-teal-600 text-white py-3.5 rounded-xl font-bold hover:bg-teal-700 transition shadow-lg shadow-teal-600/20 text-center">
+                <i class="fa-solid fa-cloud-arrow-up mr-2"></i> บันทึกการเช็กชื่อลงระบบคลาวด์
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getDatabase, ref, set, push, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword, 
+            sendPasswordResetEmail,
+            signOut 
+        } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCCCTvFuog7Tq7YZmQUX70MznzUg-XPyP8",
+            authDomain: "myschoolapp-ab89d.firebaseapp.com",
+            projectId: "myschoolapp-ab89d",
+            storageBucket: "myschoolapp-ab89d.firebasestorage.app",
+            messagingSenderId: "377875072284",
+            appId: "1:377875072284:web:21e86d5d2286c1eefd26d9",
+            databaseURL: "https://myschoolapp-ab89d-default-rtdb.asia-southeast1.firebasedatabase.app"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app); // เปิดใช้งานระบบ Auth
+
+        // ตั้งค่าภาษาของอีเมลที่ส่งออกจากระบบให้เป็นภาษาไทย
+        auth.languageCode = 'th';
+
+        const dateSelector = document.getElementById('attendance-date');
+        dateSelector.value = new Date().toISOString().split('T')[0];
+
+        let currentRole = 'teacher';
+        let localStudentArray = [];
+        let temporaryAttendanceState = {};
+
+        function encodeEmail(email) {
+            return email.replace(/\./g, ',');
+        }
+
+        window.switchRole = function(role) {
+            currentRole = role;
+            toggleRegisterBox(false);
+            toggleForgotBox(false);
+
+            ['teacher', 'student', 'parent'].forEach(r => {
+                document.getElementById(`tab-${r}`).className = "flex-1 py-2 text-xs sm:text-sm font-semibold rounded-lg text-gray-500 hover:text-gray-700 transition-all duration-200";
+            });
+            document.getElementById(`tab-${role}`).className = "flex-1 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-indigo-950 text-white transition-all duration-200";
+
+            const usernameLabel = document.getElementById('username-label');
+            const usernameInput = document.getElementById('username');
+            const usernameIcon = document.getElementById('username-icon');
+            const regTriggerZone = document.getElementById('register-trigger-zone');
+            const forgotPasswordZone = document.getElementById('forgot-password-zone');
+
+            if (role === 'teacher') { 
+                usernameLabel.innerText = "ชื่อผู้ใช้งาน (Email)"; 
+                usernameInput.placeholder = "ระบุอีเมลคุณครู"; 
+                usernameInput.type = "email";
+                usernameIcon.className = "fa-solid fa-envelope";
+                regTriggerZone.classList.remove('hidden');
+                forgotPasswordZone.classList.remove('hidden');
+            }
+            else if (role === 'student') { 
+                usernameLabel.innerText = "รหัสประจำตัวนักเรียน"; 
+                usernameInput.placeholder = "เช่น ST001"; 
+                usernameInput.type = "text";
+                usernameIcon.className = "fa-solid fa-id-card";
+                regTriggerZone.classList.add('hidden');
+                forgotPasswordZone.classList.add('hidden');
+            }
+            else if (role === 'parent') { 
+                usernameLabel.innerText = "เบอร์โทรศัพท์ผู้ปกครอง"; 
+                usernameInput.placeholder = "เช่น 0812345678"; 
+                usernameInput.type = "text";
+                usernameIcon.className = "fa-solid fa-phone";
+                regTriggerZone.classList.add('hidden');
+                forgotPasswordZone.classList.add('hidden');
+            }
+        }
+
+        window.toggleRegisterBox = function(showRegister) {
+            const loginBox = document.getElementById('login-form-box');
+            const registerBox = document.getElementById('teacher-register-box');
+            const forgotBox = document.getElementById('forgot-password-box');
+            const tabContainer = document.getElementById('role-tab-container');
+
+            if (showRegister) {
+                loginBox.classList.add('hidden');
+                forgotBox.classList.add('hidden');
+                registerBox.classList.remove('hidden');
+                tabContainer.classList.add('hidden');
+            } else {
+                registerBox.classList.add('hidden');
+                forgotBox.classList.add('hidden');
+                loginBox.classList.remove('hidden');
+                tabContainer.classList.remove('hidden');
+            }
+        }
+
+        window.toggleForgotBox = function(showForgot) {
+            const loginBox = document.getElementById('login-form-box');
+            const registerBox = document.getElementById('teacher-register-box');
+            const forgotBox = document.getElementById('forgot-password-box');
+            const tabContainer = document.getElementById('role-tab-container');
+
+            if (showForgot) {
+                loginBox.classList.add('hidden');
+                registerBox.classList.add('hidden');
+                forgotBox.classList.remove('hidden');
+                tabContainer.classList.add('hidden');
+            } else {
+                forgotBox.classList.add('hidden');
+                registerBox.classList.add('hidden');
+                loginBox.classList.remove('hidden');
+                tabContainer.classList.remove('hidden');
+            }
+        }
+
+        window.togglePassword = function() {
+            const passwordInput = document.getElementById('password');
+            const passwordIcon = document.getElementById('password-toggle-icon');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                passwordIcon.className = 'fa-solid fa-eye';
+            } else {
+                passwordInput.type = 'password';
+                passwordIcon.className = 'fa-solid fa-eye-slash';
+            }
+        }
+
+        // 1. ระบบลงทะเบียนบัญชีครูด้วย Firebase Authentication + บันทึกข้อมูลโปรไฟล์ลง Realtime Database
+        document.getElementById('teacher-register-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const fullName = document.getElementById('reg-name').value.trim();
+            const displayName = document.getElementById('reg-display-name').value.trim();
+            const email = document.getElementById('reg-email').value.trim().toLowerCase();
+            const password = document.getElementById('reg-password').value;
+            const confirmPassword = document.getElementById('reg-confirm-password').value;
+
+            if(password.length < 6) {
+                alert('รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษรขึ้นไปตามเงื่อนไขความปลอดภัยของ Firebase ครับ');
+                return;
+            }
+            if(password !== confirmPassword) {
+                alert('รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน กรุณาตรวจสอบอีกครั้งครับ');
+                return;
+            }
+
+            // สร้างผู้ใช้ในระบบ Firebase Authentication ก่อน
+            createUserWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // หากสร้างสำเร็จ ให้นำโปรไฟล์เสริมไปเก็บลง Realtime Database
+                    const encodedEmail = encodeEmail(email);
+                    return set(ref(db, `teachers/${encodedEmail}`), {
+                        fullName: fullName,
+                        displayName: displayName,
+                        email: email
+                    });
+                })
+                .then(() => {
+                    alert(`ลงทะเบียนสำเร็จผ่านระบบคลาวด์และระบบยืนยันตัวตน!\nยินดีต้อนรับคุณครู ${displayName} สามารถใช้ล็อกอินได้ทันทีครับ`);
+                    document.getElementById('teacher-register-form').reset();
+                    toggleRegisterBox(false);
+                    document.getElementById('username').value = email;
+                })
+                .catch((error) => {
+                    if (error.code === 'auth/email-already-in-use') {
+                        alert('อีเมลนี้เคยถูกใช้ลงทะเบียนในระบบแล้วครับ');
+                    } else {
+                        alert('เกิดข้อผิดพลาดในการลงทะเบียน: ' + error.message);
+                    }
+                });
+        });
+
+        // 2. ระบบล็อกอินตรวจสอบข้อมูลผ่าน Firebase Authentication จริง
+        document.getElementById('login-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const usernameValue = document.getElementById('username').value.trim().toLowerCase();
+            const passwordValue = document.getElementById('password').value;
+
+            if (currentRole === 'teacher') {
+                // ตรวจสอบรหัสผ่านผ่านระบบ Firebase Auth ความปลอดภัยสูง
+                signInWithEmailAndPassword(auth, usernameValue, passwordValue)
+                    .then((userCredential) => {
+                        // เมื่อล็อกอินสำเร็จ ไปดึงข้อมูลชื่อเรียกจาก Realtime Database มาแสดงผล
+                        const encodedEmail = encodeEmail(usernameValue);
+                        return get(ref(db, `teachers/${encodedEmail}`));
+                    })
+                    .then((snapshot) => {
+                        let teacherDisplayName = "อาจารย์";
+                        if (snapshot.exists()) {
+                            teacherDisplayName = snapshot.val().displayName;
+                        }
+                        document.getElementById('login-page').classList.add('hidden');
+                        document.getElementById('main-dashboard').classList.remove('hidden');
+                        generateMenuBasedOnRole('teacher', teacherDisplayName);
+                    })
+                    .catch((error) => {
+                        if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+                            alert('อีเมลหรือรหัสผ่านไม่ถูกต้อง กรุณาตรวจสอบอีกครั้งครับ');
+                        } else {
+                            alert('เข้าสู่ระบบไม่สำเร็จ: ' + error.message);
+                        }
+                    });
+            } else {
+                // ส่วนของนักเรียนและผู้ปกครอง (จำลองชั่วคราว)
+                document.getElementById('login-page').classList.add('hidden');
+                document.getElementById('main-dashboard').classList.remove('hidden');
+                generateMenuBasedOnRole(currentRole, usernameValue);
+            }
+        });
+
+        // 3. ระบบลืมรหัสผ่าน -> ส่งลิงก์รีเซ็ตเข้าอีเมลจริงของครูผ่านเซิร์ฟเวอร์ Google โดยตรง
+        document.getElementById('forgot-password-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const forgotEmailValue = document.getElementById('forgot-email').value.trim().toLowerCase();
+
+            sendPasswordResetEmail(auth, forgotEmailValue)
+                .then(() => {
+                    alert(`ระบบได้ทำการส่งลิงก์สำหรับตั้งรหัสผ่านใหม่ไปยังอีเมล:\n[ ${forgotEmailValue} ] เรียบร้อยแล้วครับ!\n\nกรุณาตรวจสอบที่กล่องข้อความ (หรือกล่องอีเมลขยะ/Spam) และทำตามขั้นตอนในอีเมลเพื่อเปลี่ยนรหัสผ่านใหม่นะครับ`);
+                    toggleForgotBox(false);
+                    document.getElementById('username').value = forgotEmailValue;
+                })
+                .catch((error) => {
+                    if (error.code === 'auth/user-not-found') {
+                        alert('ไม่พบข้อมูลอีเมลนี้ในระบบสมาชิกคุณครู กรุณาตรวจสอบอีเมลใหม่อีกครั้งครับ');
+                    } else if (error.code === 'auth/invalid-email') {
+                        alert('รูปแบบของอีเมลไม่ถูกต้อง กรุณากรอกใหม่อีกครั้งครับ');
+                    } else {
+                        alert('ไม่สามารถส่งอีเมลรีเซ็ตรหัสผ่านได้: ' + error.message);
+                    }
+                });
+        });
+
+        function generateMenuBasedOnRole(role, nameOrId) {
+            const menuGrid = document.getElementById('menu-grid');
+            const adminSection = document.getElementById('admin-add-student-section');
+            menuGrid.innerHTML = ''; 
+            adminSection.classList.add('hidden');
+
+            if (role === 'teacher') {
+                document.getElementById('welcome-title').innerText = `สวัสดีครับ, คุณครู${nameOrId}`;
+                document.getElementById('user-display-nav').innerHTML = `<i class="fa-solid fa-circle-user mr-2"></i>คุณครู${nameOrId}`;
+                adminSection.classList.remove('hidden');
+                menuGrid.innerHTML = `
+                    <button id="open-attend-btn" class="bg-white p-6 rounded-2xl shadow-sm border border-gray-50 flex flex-col items-center justify-center text-center hover:shadow-md hover:border-teal-200 transition group">
+                        <div class="w-12 h-12 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition"><i class="fa-solid fa-how-to-reg text-xl"></i></div>
+                        <span class="font-semibold text-gray-800 text-sm">เช็กชื่อเข้าเรียน</span>
+                    </button>
+                    <button class="menu-alert-btn bg-white p-6 rounded-2xl shadow-sm border border-gray-50 flex flex-col items-center justify-center text-center hover:shadow-md transition">
+                        <div class="w-12 h-12 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center mb-3"><i class="fa-solid fa-star text-xl"></i></div>
+                        <span class="font-semibold text-gray-800 text-sm">ระบบบันทึกคะแนน</span>
+                    </button>
+                    <button class="menu-alert-btn bg-white p-6 rounded-2xl shadow-sm border border-gray-50 flex flex-col items-center justify-center text-center hover:shadow-md transition">
+                        <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center mb-3"><i class="fa-solid fa-id-card text-xl"></i></div>
+                        <span class="font-semibold text-gray-800 text-sm">ข้อมูลนักเรียนทั้งหมด</span>
+                    </button>
+                    <button class="menu-alert-btn bg-white p-6 rounded-2xl shadow-sm border border-gray-50 flex flex-col items-center justify-center text-center hover:shadow-md transition">
+                        <div class="w-12 h-12 bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center mb-3"><i class="fa-solid fa-gear text-xl"></i></div>
+                        <span class="font-semibold text-gray-800 text-sm">ตั้งค่าระบบ</span>
+                    </button>
+                `;
+                document.getElementById('open-attend-btn').onclick = openAttendancePage;
+            } else if (role === 'student') {
+                document.getElementById('welcome-title').innerText = `สวัสดี, นักเรียนรหัส ${nameOrId}`;
+                document.getElementById('user-display-nav').innerHTML = `<i class="fa-solid fa-circle-user mr-2"></i>นักเรียน (${nameOrId})`;
+                menuGrid.innerHTML = `
+                    <button class="menu-alert-btn bg-white p-6 rounded-2xl shadow-sm border border-gray-50 flex flex-col items-center justify-center text-center hover:shadow-md transition">
+                        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-3"><i class="fa-solid fa-chart-line text-xl"></i></div>
+                        <span class="font-semibold text-gray-800 text-sm">ผลการเรียน / เกรด</span>
+                    </button>
+                    <button class="menu-alert-btn bg-white p-6 rounded-2xl shadow-sm border border-gray-50 flex flex-col items-center justify-center text-center hover:shadow-md transition">
+                        <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-3"><i class="fa-solid fa-calendar-days text-xl"></i></div>
+                        <span class="font-semibold text-gray-800 text-sm">ประวัติการมาเรียน</span>
+                    </button>
+                    <button class="menu-alert-btn bg-white p-6 rounded-2xl shadow-sm border border-gray-50 flex flex-col items-center justify-center text-center hover:shadow-md transition">
+                        <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mb-3"><i class="fa-solid fa-calendar-week text-xl"></i></div>
+                        <span class="font-semibold text-gray-800 text-sm">ตารางเรียนประจำวัน</span>
+                    </button>
+                `;
+            } else if (role === 'parent') {
+                document.getElementById('welcome-title').innerText = `สวัสดีครับ, ท่านผู้ปกครอง`;
+                document.getElementById('user-display-nav').innerHTML = `<i class="fa-solid fa-circle-user mr-2"></i>ผู้ปกครอง`;
+                menuGrid.innerHTML = `
+                    <button class="menu-alert-btn bg-white p-6 rounded-2xl shadow-sm border border-gray-50 flex flex-col items-center justify-center text-center hover:shadow-md transition">
+                        <div class="w-12 h-12 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center mb-3"><i class="fa-solid fa-user-check text-xl"></i></div>
+                        <span class="font-semibold text-gray-800 text-sm">ติดตามการเข้าเรียน</span>
+                    </button>
+                    <button class="menu-alert-btn bg-white p-6 rounded-2xl shadow-sm border border-gray-50 flex flex-col items-center justify-center text-center hover:shadow-md transition">
+                        <div class="w-12 h-12 bg-red-50 text-red-600 rounded-xl flex items-center justify-center mb-3"><i class="fa-solid fa-envelope-open-text text-xl"></i></div>
+                        <span class="font-semibold text-gray-800 text-sm">แจ้งลาให้บุตรหลาน</span>
+                    </button>
+                `;
+            }
+
+            document.querySelectorAll('.menu-alert-btn').forEach(btn => {
+                btn.onclick = function() { alert('ระบบพัฒนาในเฟสถัดไป'); };
+            });
+        }
+
+        document.getElementById('add-student-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const inputField = document.getElementById('new-student-name');
+            const name = inputField.value.trim();
+            if(name) {
+                const studentRef = ref(db, 'students');
+                push(studentRef, { name: name }).then(() => {
+                    inputField.value = '';
+                    alert('เพิ่มรายชื่อเข้าฐานข้อมูลคลาวด์สำเร็จ!');
+                }).catch(err => {
+                    alert('ไม่สามารถเพิ่มข้อมูลได้เนื่องจาก: ' + err.message);
+                });
+            }
+        });
+
+        function openAttendancePage() {
+            document.getElementById('main-dashboard').classList.add('hidden');
+            document.getElementById('attendance-page').classList.remove('hidden');
+            fetchStudentsAndAttendance();
+        }
+
+        function fetchStudentsAndAttendance() {
+            const selectedDate = dateSelector.value;
+            onValue(ref(db), (snapshot) => {
+                const data = snapshot.val() || {};
+                const students = data.students || {};
+                const attendance = data.attendance ? (data.attendance[selectedDate] || {}) : {};
+
+                localStudentArray = Object.keys(students).map(id => ({ id, name: students[id].name }));
+                temporaryAttendanceState = { ...attendance };
+
+                renderStudentList();
+            });
+        }
+
+        function renderStudentList() {
+            const container = document.getElementById('student-list-container');
+            container.innerHTML = '';
+
+            if (localStudentArray.length === 0) {
+                container.innerHTML = `<div class="p-6 text-center text-gray-400 text-sm">ยังไม่มีข้อมูลนักเรียนบนคลาวด์ กรุณาเพิ่มชื่อที่หน้าหลักก่อนครับ</div>`;
+                return;
+            }
+
+            localStudentArray.forEach((student, index) => {
+                const currentStatus = temporaryAttendanceState[student.id] || 'มา';
+                const item = document.createElement('div');
+                item.className = "flex items-center justify-between p-4 border-b border-gray-100 hover:bg-gray-50 transition";
+                item.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <span class="text-sm font-semibold text-gray-400">${index + 1}</span>
+                        <span class="font-medium text-gray-800">${student.name}</span>
+                    </div>
+                    <select data-id="${student.id}" class="attendance-select bg-gray-50 border border-gray-200 text-sm font-bold rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-600">
+                        <option value="มา" ${currentStatus === 'มา' ? 'selected' : ''} class="text-green-600 font-bold">มา</option>
+                        <option value="ขาด" ${currentStatus === 'ขาด' ? 'selected' : ''} class="text-red-600 font-bold">ขาด</option>
+                        <option value="ลา" ${currentStatus === 'ลา' ? 'selected' : ''} class="text-orange-600 font-bold">ลา</option>
+                        <option value="สาย" ${currentStatus === 'สาย' ? 'selected' : ''} class="text-blue-600 font-bold">สาย</option>
+                    </select>
+                `;
+                container.appendChild(item);
+            });
+
+            document.querySelectorAll('.attendance-select').forEach(select => {
+                select.addEventListener('change', function() {
+                    const sId = this.getAttribute('data-id');
+                    temporaryAttendanceState[sId] = this.value;
+                });
+            });
+        }
+
+        window.saveAttendanceData = function() {
+            const selectedDate = dateSelector.value;
+            if(localStudentArray.length === 0) return;
+
+            localStudentArray.forEach(student => {
+                if(!temporaryAttendanceState[student.id]) {
+                    temporaryAttendanceState[student.id] = 'มา';
+                }
+            });
+
+            set(ref(db, `attendance/${selectedDate}`), temporaryAttendanceState)
+                .then(() => {
+                    alert('บันทึกข้อมูลการเช็กชื่อนักเรียนทั้งหมดลงระบบคลาวด์เรียบร้อยแล้ว!');
+                    goToDashboard();
+                })
+                .catch(err => alert('เกิดข้อผิดพลาด: ' + err.message));
+        }
+
+        window.goToDashboard = function() {
+            document.getElementById('attendance-page').classList.add('hidden');
+            document.getElementById('main-dashboard').classList.remove('hidden');
+        }
+
+        window.handleLogout = function() {
+            signOut(auth).then(() => {
+                document.getElementById('main-dashboard').classList.add('hidden');
+                document.getElementById('login-page').classList.remove('hidden');
+                document.getElementById('login-form').reset();
+                switchRole('teacher');
+            });
+        }
+
+        document.getElementById('back-to-dash-btn').onclick = goToDashboard;
+        document.getElementById('logout-btn').onclick = handleLogout;
+        document.getElementById('save-attendance-btn').onclick = saveAttendanceData;
+        dateSelector.addEventListener('change', fetchStudentsAndAttendance);
+    </script>
+</body>
+</html>
